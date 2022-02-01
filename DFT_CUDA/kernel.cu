@@ -1,18 +1,20 @@
-﻿
+﻿#ifndef __CUDACC__ 
+#define __CUDACC__
+#endif
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-
 #include <stdio.h>
 #include <exception>
 #include <fstream>
-#ifndef __CUDACC__ 
-#define __CUDACC__
-#endif
 #include <device_functions.h>
+#include <ctime>
+
 #include "EasyBMP/EasyBMP.h"
 #include "EasyBMP/EasyBMP_DataStructures.h"
 #include "EasyBMP/EasyBMP.h"
 #include "EasyBMP/EasyBMP_VariousBMPutilities.h"
+
 using namespace std;
 
 cudaError_t DFTWithCuda(int dir, int row_col, int width, int height, double* input_re, double* input_im, double* DFT_re, double* DFT_im);
@@ -177,24 +179,31 @@ int main()
 	}
 	cout << "1. DFT " << endl;
 
+	unsigned int start_time = clock();
+
 	//DFT without unsing CUDA
-	//DFT(1, 0, width, height, tableA_re, tableA_im, tableB_re, tableB_im); // DFT row
-	//clear(width, height, tableA_re, tableA_im);	// clear table
-	//DFT(1, 1, width, height, tableB_re, tableB_im, tableA_re, tableA_im); // DFT col
+	DFT(1, 0, width, height, tableA_re, tableA_im, tableB_re, tableB_im); // DFT row
+	clear(width, height, tableA_re, tableA_im);	// clear table
+	DFT(1, 1, width, height, tableB_re, tableB_im, tableA_re, tableA_im); // DFT col
 
 	cudaError_t cudaStatus;
 	 //Add vectors in parallel.
-	cudaStatus = DFTWithCuda(1, 0, width, height, tableA_re, tableA_im, tableB_re, tableB_im); // DFT row
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "addWithCuda failed!");
-		return 1;
-	}
+	//cudaStatus = DFTWithCuda(1, 0, width, height, tableA_re, tableA_im, tableB_re, tableB_im); // DFT row
+	//if (cudaStatus != cudaSuccess) {
+	//	fprintf(stderr, "addWithCuda failed!");
+	//	return 1;
+	//}
 
-	cudaStatus = DFTWithCuda(1, 1, width, height, tableB_re, tableB_im, tableA_re, tableA_im); // DFT col
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "addWithCuda failed!");
-		return 1;
-	}
+	//cudaStatus = DFTWithCuda(1, 1, width, height, tableB_re, tableB_im, tableA_re, tableA_im); // DFT col
+	//if (cudaStatus != cudaSuccess) {
+	//	fprintf(stderr, "addWithCuda failed!");
+	//	return 1;
+	//}
+
+	unsigned int end_time = clock();
+	unsigned int search_time = end_time - start_time;
+
+	cout << "	DFT execution time: " << search_time << " milliseconds" << endl;
 
 	cout << "2. Cutting the mask. " << endl;
 
